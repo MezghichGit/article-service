@@ -1,5 +1,8 @@
 package com.sip.ams.services;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -32,12 +35,36 @@ public class ArticleService {
 		
 		Article article = articleRepository.findArticleById(articleId);
 		
-		Provider provider = restTemplate.getForObject("http://127.0.0.1:8001/providers/" + article.getProviderId(),
+		Provider provider = restTemplate.getForObject("http://PROVIDER-SERVICE/providers/" + article.getProviderId(),
 				Provider.class);
 		
 		article_provider.setArticle(article);
 		article_provider.setProvider(provider);
 		
 		return article_provider;
+	}
+	
+	public List<Article> getAllArticles()
+	{
+		return  articleRepository.findAll();
+	}
+	
+	public List<ArticleProvider> getAlllArticlesWithProviders() {
+		
+		List<ArticleProvider> mesArticles = new ArrayList<>();
+		
+		List<Article> articlesSansProviders = getAllArticles();
+		
+		for(Article article : articlesSansProviders)
+		{
+			Provider provider = restTemplate.getForObject("http://PROVIDER-SERVICE/providers/" + article.getProviderId(),
+					Provider.class);
+			ArticleProvider article_provider = new ArticleProvider();
+			article_provider.setArticle(article);
+			article_provider.setProvider(provider);
+			mesArticles.add(article_provider);	
+		}
+		log.info("Récupération des articles avec providers avec succès");
+		return mesArticles;
 	}
 }
